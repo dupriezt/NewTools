@@ -1,6 +1,6 @@
 Class {
 	#name : #StPlaygroundDoItCommand,
-	#superclass : #CmCommand,
+	#superclass : #StPlaygroundCommand,
 	#category : #'NewTools-Playground-Command'
 }
 
@@ -19,10 +19,9 @@ StPlaygroundDoItCommand >> execute [
 ]
 
 { #category : #initialization }
-StPlaygroundDoItCommand >> initialize [ 
-	
+StPlaygroundDoItCommand >> initialize [
 	super initialize.
-	self 
-		basicName: 'Do it';
-		basicDescription: 'Do it all and inspect.'
+	self
+		name: 'Do it';
+		description: 'Do it all and inspect.'
 ]

@@ -5,12 +5,6 @@ Class {
 }
 
 { #category : #'as yet unclassified' }
-RunToSelectionDebugCommand class >> defaultCommandName [
-	<toolbarDebugCommand: 50>
-	^ 'Run to'
-]
-
-{ #category : #'as yet unclassified' }
 RunToSelectionDebugCommand class >> defaultDescription [
 	^ 'Execute methods up to the text cursor position and return debugger control.'
 ]
@@ -22,7 +16,11 @@ RunToSelectionDebugCommand class >> defaultIconName [
 
 { #category : #'as yet unclassified' }
 RunToSelectionDebugCommand class >> defaultName [
+<<<<<<< HEAD
 
+=======
+	<toolbarDebugCommand: 50>
+>>>>>>> upstream/master
 	^ 'Run to'
 ]
 
@@ -34,6 +32,6 @@ RunToSelectionDebugCommand class >> defaultShortcut [
 { #category : #hooks }
 RunToSelectionDebugCommand >> execute [
 	self session
-		runToSelection: self debugger code getSelection
+		runToSelection: self debugger code selection
 		inContext: self currentContext
 ]

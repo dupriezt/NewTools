@@ -5,6 +5,7 @@ Class {
 }
 
 { #category : #default }
+<<<<<<< HEAD
 StepThroughDebugCommand class >> defaultCommandName [
 	<toolbarDebugCommand: 3>
 
@@ -12,6 +13,8 @@ StepThroughDebugCommand class >> defaultCommandName [
 ]
 
 { #category : #default }
+=======
+>>>>>>> upstream/master
 StepThroughDebugCommand class >> defaultDescription [
 	^ 'Step over the highlighted message, i.e. do not follow the sent message, taking debugger control after the method invoked returns or whenever execution should return inside a block used as an argument before that.'
 ]
@@ -23,6 +26,10 @@ StepThroughDebugCommand class >> defaultIconName [
 
 { #category : #default }
 StepThroughDebugCommand class >> defaultName [
+<<<<<<< HEAD
+=======
+	<toolbarDebugCommand: 30>
+>>>>>>> upstream/master
 
 	^ 'Through'
 ]

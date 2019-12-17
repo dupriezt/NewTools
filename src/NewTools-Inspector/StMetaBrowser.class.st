@@ -28,6 +28,13 @@ StMetaBrowser class >> defaultSpec [
 ]
 
 { #category : #initialization }
+StMetaBrowser >> connectPresenters [
+
+	self initializeMethodList.
+	self initializeClassTree
+]
+
+{ #category : #initialization }
 StMetaBrowser >> initializeClassTree [
 	| classHierarchy |
 	
@@ -59,18 +66,11 @@ StMetaBrowser >> initializeMethodList [
 				ifNil: [ source text: '' ]
 				ifNotNil: [ source behavior: method methodClass.
 					source text: method sourceCode ] ].
-	methods displayBlock: [ :each | each selector ]
+	methods display: [ :each | each selector ]
 ]
 
 { #category : #initialization }
-StMetaBrowser >> initializePresenter [
-
-	self initializeMethodList.
-	self initializeClassTree
-]
-
-{ #category : #initialization }
-StMetaBrowser >> initializeWidgets [
+StMetaBrowser >> initializePresenters [
 
 	classes := self newTreeTable.
 	methods := self newList.

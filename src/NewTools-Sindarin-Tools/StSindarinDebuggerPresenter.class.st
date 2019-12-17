@@ -42,7 +42,7 @@ StSindarinDebuggerPresenter >> buildToolBar [
 	group := CmCommandGroup forSpec.
 	SindarinCommand allSubclasses
 		do: [ :cmd | group register: (cmd forSpecContext: self) ].
-	^ group asToolBarPresenterWith: [ :presenter | presenter beIcons ]
+	^ group asToolbarPresenterWith: [ :presenter | presenter beIcons ]
 ]
 
 { #category : #initialization }
@@ -62,7 +62,8 @@ StSindarinDebuggerPresenter >> initializeWidgets [
 					currentNodeSource setSelection: (node start to: node stop).
 					currentNodeSource
 						doItReceiver: selection selectedItem home receiver;
-						doItContext: selection selectedItem ] ].
+						doItContext: selection selectedItem ].
+					currentNodeSource accept].
 	stack items: self model stack.
 	inspector := StRawInspection on: self model stack first.
 	currentNodeSource := self newCode.
@@ -72,11 +73,12 @@ StSindarinDebuggerPresenter >> initializeWidgets [
 	currentNodeSource text: self model currentNode source.
 	currentNodeSource behavior: self model method methodClass.
 	stack selectIndex: 1.
-	toolbar := self buildToolBar
+	toolbar := self buildToolBar.
 ]
 
 { #category : #stepping }
 StSindarinDebuggerPresenter >> refresh [ 
+	stack items: self model stack.
 	stack selectIndex: 1
 ]
 

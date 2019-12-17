@@ -1,6 +1,6 @@
 Class {
 	#name : #StPlaygroundPublishCommand,
-	#superclass : #CmCommand,
+	#superclass : #StPlaygroundCommand,
 	#category : #'NewTools-Playground-Command'
 }
 
@@ -20,10 +20,9 @@ StPlaygroundPublishCommand >> execute [
 ]
 
 { #category : #initialization }
-StPlaygroundPublishCommand >> initialize [ 
-	
+StPlaygroundPublishCommand >> initialize [
 	super initialize.
-	self 
-		basicName: 'Publish';
-		basicDescription: 'Publish contents to the cloud.'
+	self
+		name: 'Publish';
+		description: 'Publish contents to the cloud.'
 ]

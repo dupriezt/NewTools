@@ -5,13 +5,6 @@ Class {
 }
 
 { #category : #accessing }
-ReturnValueDebugCommand class >> defaultCommandName [
-	<toolbarDebugCommand: 910>
-	
-	^ 'Return'
-]
-
-{ #category : #accessing }
 ReturnValueDebugCommand class >> defaultDescription [
 	^ 'Return of a given value to the previous context.'
 ]
@@ -29,6 +22,10 @@ ReturnValueDebugCommand class >> defaultLabel [
 
 { #category : #accessing }
 ReturnValueDebugCommand class >> defaultName [
+<<<<<<< HEAD
+=======
+	<toolbarDebugCommand: 910>
+>>>>>>> upstream/master
 	
 	^ 'Return'
 ]

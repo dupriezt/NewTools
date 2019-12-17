@@ -5,12 +5,15 @@ Class {
 }
 
 { #category : #default }
+<<<<<<< HEAD
 ProceedDebugCommand class >> defaultCommandName [
 	<toolbarDebugCommand: 1000>
 	^ 'Proceed'
 ]
 
 { #category : #default }
+=======
+>>>>>>> upstream/master
 ProceedDebugCommand class >> defaultDescription [
 	^ 'Relinquish debugger control and proceed execution from the current point of debugger control.'
 ]
@@ -22,7 +25,11 @@ ProceedDebugCommand class >> defaultIconName [
 
 { #category : #default }
 ProceedDebugCommand class >> defaultName [
+<<<<<<< HEAD
 
+=======
+	<toolbarDebugCommand: 10>
+>>>>>>> upstream/master
 	^ 'Proceed'
 ]
 

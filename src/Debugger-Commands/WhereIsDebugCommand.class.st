@@ -5,12 +5,6 @@ Class {
 }
 
 { #category : #default }
-WhereIsDebugCommand class >> defaultCommandName [
-	<toolbarDebugCommand: 1000>
-	^ 'Where is?'
-]
-
-{ #category : #default }
 WhereIsDebugCommand class >> defaultDescription [
 	^ 'Highligh the next method to be executed (step) by the debugger.'
 ]
@@ -22,7 +16,11 @@ WhereIsDebugCommand class >> defaultIconName [
 
 { #category : #default }
 WhereIsDebugCommand class >> defaultName [
+<<<<<<< HEAD
 
+=======
+	<toolbarDebugCommand: 1000>
+>>>>>>> upstream/master
 	^ 'Where is?'
 ]
 
@@ -36,5 +34,5 @@ WhereIsDebugCommand >> execute [
 	self flag: 'Should the action have this responsibility on the debugger code pane?'.
 	self flag: 'Bound to the bytecode execution model.'.
 	self debugger code
-		setSelection: (self session pcRangeForContext: self currentContext)
+		selection: (self session pcRangeForContext: self currentContext)
 ]

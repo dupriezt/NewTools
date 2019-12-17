@@ -5,12 +5,6 @@ Class {
 }
 
 { #category : #default }
-FullStackDebugCommand class >> defaultCommandName [
-	<toolbarDebugCommand: 999>
-	^ 'Full stack'
-]
-
-{ #category : #default }
 FullStackDebugCommand class >> defaultDescription [
 	^ 'Open a full debugger to navigate in the full bugged stack.'
 ]
@@ -22,7 +16,11 @@ FullStackDebugCommand class >> defaultIconName [
 
 { #category : #default }
 FullStackDebugCommand class >> defaultName [
+<<<<<<< HEAD
 
+=======
+	<toolbarDebugCommand: 999>
+>>>>>>> upstream/master
 	^ 'Full stack'
 ]
 
@@ -35,5 +33,5 @@ FullStackDebugCommand class >> defaultShortcut [
 FullStackDebugCommand >> execute [
 	self flag: 'Broken'.
 	self flag: 'What is the usage?'.
-	self debugger stack expandBy: self expandedStackSize
+	self debugger showFullStack
 ]

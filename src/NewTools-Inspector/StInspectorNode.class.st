@@ -14,6 +14,14 @@ StInspectorNode class >> hostObject: anObject [
 		yourself
 ]
 
+{ #category : #comparing }
+StInspectorNode >> = anObject [
+
+	self == anObject ifTrue: [ ^ true ].
+	self class = anObject class ifFalse: [ ^ false ].
+	^ hostObject == anObject hostObject
+]
+
 { #category : #accessing }
 StInspectorNode >> children [ 
 	
@@ -23,6 +31,12 @@ StInspectorNode >> children [
 { #category : #accessing }
 StInspectorNode >> errorMessage [
 	^ 'error obtaining value'
+]
+
+{ #category : #comparing }
+StInspectorNode >> hash [
+
+	^ hostObject hash
 ]
 
 { #category : #accessing }
@@ -75,6 +89,12 @@ StInspectorNode >> label [
 ]
 
 { #category : #accessing }
+StInspectorNode >> mementoValue [
+
+	^ self value
+]
+
+{ #category : #accessing }
 StInspectorNode >> rawValue [
 	"Answer the object value of this object variable (slot, indexed attribute, computed value)."
 	^ self subclassResponsibility
@@ -87,8 +107,7 @@ StInspectorNode >> save: aValue [
 { #category : #accessing }
 StInspectorNode >> stringValue [
 
-	^ self value gtDisplayString
-	
+	^ self value stDisplayString
 ]
 
 { #category : #accessing }

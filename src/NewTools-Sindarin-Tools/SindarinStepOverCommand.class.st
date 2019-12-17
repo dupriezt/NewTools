@@ -5,11 +5,6 @@ Class {
 }
 
 { #category : #default }
-SindarinStepOverCommand class >> defaultCommandName [
-	^ 'Step Over'
-]
-
-{ #category : #default }
 SindarinStepOverCommand class >> defaultDescription [
 	^ 'Step over'
 ]
@@ -19,7 +14,13 @@ SindarinStepOverCommand class >> defaultIconName [
 	^#glamorousOver
 ]
 
+{ #category : #default }
+SindarinStepOverCommand class >> defaultName [
+	^ 'Step Over'
+]
+
 { #category : #hooks }
 SindarinStepOverCommand >> execute [
-	self context stepOver
+	self context model stepOver.
+	self context refresh.
 ]

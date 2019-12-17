@@ -1,10 +1,23 @@
+"
+I am an inspector of objects. 
+I offer multiple views using a miller list as a navigation. 
+One particular feature is that you can use the evaluator tab to enter code, and evaluating it results in opening another pane to the right.
+
+The object finder asks dynamically the object for the actual presentations that are displayed in each pane.
+
+Example:
+self openOn: Smalltalk.
+
+Register it as a replacement for inspector:
+self registerToolsOn: Smalltalk tools.
+"
 Class {
 	#name : #StInspector,
 	#superclass : #StPresenter,
 	#instVars : [
-		'views',
-		'evaluator',
-		'model'
+		'millerList',
+		'model',
+		'lastPageSelectedTabName'
 	],
 	#classVars : [
 		'PreferredExtent'
@@ -12,39 +25,62 @@ Class {
 	#category : #'NewTools-Inspector-View'
 }
 
+{ #category : #accessing }
+StInspector class >> defaultSpacing [
+
+	^ 3
+]
+
 { #category : #specs }
 StInspector class >> defaultSpec [
-	<spec: #default>
-	
-	^ SpPanedLayout newVertical
-		position: 70 percent;
-		add: #views;
-		add: #evaluator;
+
+	^ SpBoxLayout newVertical
+		add: #millerList;
 		yourself
 ]
 
-{ #category : #accessing }
-StInspector class >> defaultTitle [
-
-	^ 'Inspector'
+{ #category : #'instance creation' }
+StInspector class >> explore: anObject [
+ 
+	self openOn: anObject.
+	^ anObject
 ]
 
-{ #category : #accessing }
-StInspector class >> extensionsPragma [
-
-	^ #inspectorPresentationOrder:title:
-]
-
-{ #category : #'tools registry' }
+{ #category : #'instance creation' }
 StInspector class >> inspect: anObject [
 
 	^ self openOn: anObject
 ]
 
-{ #category : #opening }
+{ #category : #'instance creation' }
+StInspector class >> inspect: anObject label: aString [
+
+	(self openOn: anObject) title: aString.
+	^ anObject
+
+]
+
+{ #category : #'instance creation' }
+StInspector class >> inspector: anObject [
+	
+	self 
+		deprecated: 'Use #inspect: instead.'
+		transformWith: '`@receiver inspector: `@statements1'
+				-> '`@receiver inspect: `@statements1'.
+
+	^ self openOn: anObject
+]
+
+{ #category : #'instance creation' }
+StInspector class >> onObject: anObject [
+
+	^ self on: (StInspectorModel on: anObject)
+]
+
+{ #category : #'instance creation' }
 StInspector class >> openOn: anObject [
 
-	^ (self on: (StInspectorModel on: anObject)) openWithSpec
+	^ (self onObject: anObject) openWithSpec
 ]
 
 { #category : #accessing }
@@ -54,35 +90,39 @@ StInspector class >> preferredExtent [
 ]
 
 { #category : #accessing }
-StInspector class >> titleFor: anObject [ 
-
-	^ 'Inspector on {1}' format: { anObject gtDisplayString  }
+StInspector class >> preferredExtent: aPoint [
+	
+	PreferredExtent := aPoint
 ]
 
-{ #category : #private }
-StInspector >> allPages [
+{ #category : #'tools registry' }
+StInspector class >> register [
+	<script>
 
-	^ self model objectInspectionPages
+	self registerToolsOn: Smalltalk tools
 ]
 
-{ #category : #'private builder' }
-StInspector >> buildToolBar [
-
-	^ CmCommandGroup forSpec
-		register: (StInspectorBrowseCommand forSpecContext: self);
-		register: (StInspectorHelpCommand forSpecContext: self);
-		asToolBarPresenterWith: [ :presenter | presenter beIcons ]
+{ #category : #'tools registry' }
+StInspector class >> registerToolsOn: registry [
+	"self registerToolsOn: Smalltalk tools " 
+	registry register: self as: #inspector
 ]
 
 { #category : #initialization }
-StInspector >> initializeWidgets [
+StInspector >> defineInputPorts [
 
-	views := self newNotebook.
-	evaluator := self newCode.
+	^ { SpModelPort new }
+]
 
-	views pages: self allPages.
-		
-	self refresh
+{ #category : #initialization }
+StInspector >> initializePresenters [
+
+	millerList := self instantiate: SpMillerColumnPresenter.
+	millerList 
+		spacing: self spacing;
+		presenterBlock: [ :aModel | self newInspectorFor: aModel ];
+		setRootModel: self model;
+		whenColumnsWillChangeDo: [ :insertIndex | self keepLastPageSelectedTabName ]
 ]
 
 { #category : #initialization }
@@ -90,50 +130,113 @@ StInspector >> initializeWindow: aWindowPresenter [
 
 	super initializeWindow: aWindowPresenter.
 	aWindowPresenter 
+<<<<<<< HEAD
 		title: self title";
 		toolBar: self buildToolBar"
+=======
+		title: self model windowTitle;
+		initialExtent: self class preferredExtent;
+		whenOpenedDo: [ self startStepping ];
+		whenClosedDo: [ self stopStepping ];
+		whenResizingDo: [ :ann | self class preferredExtent: ann newSize ]
+>>>>>>> upstream/master
 ]
 
-{ #category : #'model access' }
-StInspector >> inspectedObject [ 	
-	^self model inspectedObject
+{ #category : #private }
+StInspector >> keepLastPageSelectedTabName [
+	
+	lastPageSelectedTabName := millerList pages 
+		ifNotEmpty: [ :pages | pages last selectedPageName ]
+		ifEmpty: [ nil ]
 ]
 
-{ #category : #'model access' }
-StInspector >> model [ 
+{ #category : #accessing }
+StInspector >> model [
 
 	^ model
 ]
 
-{ #category : #'model access' }
+{ #category : #'accessing model' }
 StInspector >> model: anInspectorModel [
 
 	model := anInspectorModel.
-	self refresh
+	self updateTitle.
+	self updateList
+]
+
+{ #category : #'private factory' }
+StInspector >> newInspectorFor: aModel [
+	| newInspector |
+	
+	newInspector := StObjectInspector on: (self toInspectorModel: aModel). 
+	millerList pages ifNotEmpty: [ :pages |
+		newInspector trySelectAnyPageNamed: { 
+			lastPageSelectedTabName. 
+			pages last selectedPageName } ].
+	
+	^ newInspector
 ]
 
 { #category : #private }
-StInspector >> refresh [
-	"model changed?  
-	 update inspector values."
+StInspector >> setModel: aModel [
 
-	self flag: #TODO.	"not finished, clearly :P"
-	self withWindowDo: [ :window | 
-		window title: self title ].
-	evaluator doItReceiver: self model inspectedObject.
-	views pagesChanged.
-	self update
+	self model: aModel
 ]
 
-{ #category : #'model access' }
+{ #category : #'accessing model' }
 StInspector >> setModelBeforeInitialization: anInspectorModel [
 
 	model := anInspectorModel
-
-	
 ]
 
 { #category : #accessing }
-StInspector >> title [
-	^ self class titleFor: self model inspectedObject
+StInspector >> spacing [
+	
+	^ self class defaultSpacing
+]
+
+{ #category : #'private stepping' }
+StInspector >> startStepping [
+	
+	StInspectorRefreshService uniqueInstance register: self
+]
+
+{ #category : #'private stepping' }
+StInspector >> step [ 
+
+	millerList pages
+		do: [ :each | each step ]
+]
+
+{ #category : #'private stepping' }
+StInspector >> stopStepping [
+
+	StInspectorRefreshService uniqueInstance unregister: self
+]
+
+{ #category : #private }
+StInspector >> toInspectorModel: aModel [
+
+	self flag: #HACK. "I do not like to use this, but I really do not want to add a double 
+	dispatch to solve this problem :("
+	(aModel isKindOf: StInspectorModel) ifTrue: [ ^ aModel ].
+	(aModel isKindOf: StInspectorNode) ifTrue: [ ^ StInspectorModel on: aModel rawValue ].
+
+	^ StInspectorModel on: aModel
+]
+
+{ #category : #'private updating' }
+StInspector >> updateList [
+
+	millerList 
+		resetTo: 0;
+		setRootModel: self model
+]
+
+{ #category : #'private updating' }
+StInspector >> updateTitle [
+		
+	self isRoot ifFalse: [ ^ self ].
+	self withWindowDo: [ :window | 
+		window title: self title ].
 ]

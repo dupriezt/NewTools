@@ -5,11 +5,6 @@ Class {
 }
 
 { #category : #default }
-SindarinRefreshCommand class >> defaultCommandName [
-	^ 'Refresh'
-]
-
-{ #category : #default }
 SindarinRefreshCommand class >> defaultDescription [
 	^ 'Refresh the UI. Necessary after manual control of Sindarin.'
 ]
@@ -17,6 +12,11 @@ SindarinRefreshCommand class >> defaultDescription [
 { #category : #initialization }
 SindarinRefreshCommand class >> defaultIconName [
 	^#refresh 
+]
+
+{ #category : #default }
+SindarinRefreshCommand class >> defaultName [
+	^ 'Refresh'
 ]
 
 { #category : #hooks }

@@ -73,13 +73,15 @@ FBByFlagsPagePresenter >> flagsList: anObject [
 { #category : #initialization }
 FBByFlagsPagePresenter >> initializePresenter [
 	super initializePresenter.
-
-	flagsList transmitTo: locationsTable transform: #locations postTransmission: [ :destination | destination selectIndex: 1 ].
-
-	modeDropbox transmitTo: flagsList transform: #allFlags postTransmission: [ :destination | destination selectIndex: 1 ].
-
-	modeDropbox selectedItem: FBSymbolFlag.
-
+	flagsList
+		transmitTo: locationsTable
+		transform: #locations
+		postTransmission: [ :destination | destination selectIndex: 1 ].
+	modeDropbox
+		transmitTo: flagsList
+		transform: #allFlags
+		postTransmission: [ :destination | destination selectIndex: 1 ].
+	modeDropbox selectItem: FBSymbolFlag.
 	caseCheckbox
 		whenChangedDo: [ :value | 
 			FBFlag caseSensitive: value.
@@ -92,19 +94,17 @@ FBByFlagsPagePresenter >> initializeWidgets [
 	modeDropbox := self newDropList.
 	flagsList := self newList.
 	caseCheckbox := self newCheckBox.
-
 	modeDropbox
 		items: FBFlag withAllSubclasses;
-		displayBlock: [ :class | class title ].
-
+		display: [ :class | class title ].
 	flagsList
-		displayBlock: [ :flag | flag parameter asString , ' (' , flag locations size asString , ' occurences)' ];
+		display: [ :flag | 
+			flag parameter asString , ' (' , flag locations size asString
+				, ' occurences)' ];
 		sortingBlock: [ :flag | flag parameter asString ] ascending.
-
 	locationsTable
 		addColumn: (SpStringTableColumn title: 'Class' evaluated: #classLocation);
 		addColumn: (SpStringTableColumn title: 'Method' evaluated: #selector).
-
 	caseCheckbox
 		label: 'Case sensitive';
 		state: FBFlag caseSensitive

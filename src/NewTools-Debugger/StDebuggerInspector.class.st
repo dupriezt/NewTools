@@ -1,32 +1,26 @@
 Class {
 	#name : #StDebuggerInspector,
-	#superclass : #StInspection,
+	#superclass : #SpPresenter,
 	#instVars : [
-		'contextLabel',
-		'contextInspector',
-		'inspector'
+		'inspector',
+		'model',
+		'label',
+		'rawInspectionSelectionCache'
 	],
 	#category : #'NewTools-Debugger-View'
 }
 
 { #category : #specs }
 StDebuggerInspector class >> defaultSpec [
-	<spec: #default>
-	^ SpPanedLayout newHorizontal
-		position: 40 percent;
-		add: (SpBoxLayout newVertical 
-			add: #contextLabel expand: false fill: false padding: 5;
-			add: #contextInspector;
-			yourself);
-		add: #inspector;
-		yourself
+	^ SpBoxLayout newVertical
+		  add: #inspector;
+		  yourself
 ]
 
 { #category : #'instance creation' }
 StDebuggerInspector class >> openOn: anObject [
-	^ (self
-		newApplication: SpecNullApplication new
-		model: (StInspectorModel on: anObject)) openWithSpec
+
+	^ (self on: (StInspectorModel on: anObject)) openWithSpec
 ]
 
 { #category : #specs }
@@ -34,6 +28,7 @@ StDebuggerInspector class >> title [
 	 ^'Debugger Inspection'
 ]
 
+<<<<<<< HEAD
 { #category : #initialization }
 StDebuggerInspector >> initializeContextInspector [
 	contextInspector := StDebuggerRawInspection basicNew.
@@ -58,38 +53,110 @@ StDebuggerInspector >> initializeInspector [
 	inspector
 		setModelBeforeInitialization: (StInspectorModel on: contextInspector table selectedItem hostObject).
 	inspector initialize
+=======
+{ #category : #updating }
+StDebuggerInspector >> forceRawInspectionUpdate [
+	self getRawInspectorPresenterOrNil ifNotNil: [ :inspection | 
+		inspection update ]
+]
+
+{ #category : #private }
+StDebuggerInspector >> getRawInspectorPresenterOrNil [
+	^ inspector millerList pages first rawInspectorPageOrNil
+		  activePresenter
+>>>>>>> upstream/master
+]
+
+{ #category : #private }
+StDebuggerInspector >> getRawInspectorSelectedPath [
+	^ self getRawInspectorPresenterOrNil
+		  ifNil: [ #(  ) ]
+		  ifNotNil: [ :raw | raw selectedPath ]
 ]
 
 { #category : #initialization }
-StDebuggerInspector >> initializeWidgets [
-
-	contextLabel := self newLabel.
-	self initializeContextInspector.
-	self initializeInspector
+StDebuggerInspector >> initializePresenters [
+	label := self newLabel.
+	inspector := self instantiate: StInspector on: self model
 ]
 
 { #category : #accessing }
 StDebuggerInspector >> inspectedObject [
+
 	^ self model inspectedObject
 ]
 
 { #category : #accessing }
 StDebuggerInspector >> label: aString [
 
-	contextLabel label: aString
+	label label: aString
+]
+
+{ #category : #'accessing model' }
+StDebuggerInspector >> model [
+
+	^ model
+]
+
+{ #category : #'accessing model' }
+StDebuggerInspector >> model: aModel [
+
+	model := aModel.
+	inspector model: model
+]
+
+{ #category : #accessing }
+StDebuggerInspector >> rawInspectionSelectionCache [
+	^ rawInspectionSelectionCache ifNil: [ 
+		  rawInspectionSelectionCache := Dictionary new ]
+]
+
+{ #category : #private }
+StDebuggerInspector >> restoreRawInspectionSelectionForContext: aContext [
+	aContext ifNil: [ ^ self ].
+	self getRawInspectorPresenterOrNil ifNotNil: [ :raw | 
+		raw selectPath: (self rawInspectionSelectionCache
+				 at: aContext receiver class -> aContext selector
+				 ifAbsent: [ #() ]) ]
+]
+
+{ #category : #private }
+StDebuggerInspector >> saveRawInspectionSelectionForContext: aContext [
+	aContext ifNil: [ ^ self ].
+	self rawInspectionSelectionCache
+		at: aContext receiver class -> aContext selector
+		put: self getRawInspectorSelectedPath
+]
+
+{ #category : #'accessing model' }
+StDebuggerInspector >> setModelBeforeInitialization: aModel [
+
+	model := aModel
+]
+
+{ #category : #updating }
+StDebuggerInspector >> updateEvaluationPaneReceiver [
+
+	|receiver evaluator|
+	receiver := self model inspectedObject context receiver.
+	evaluator := inspector millerList presenters first evaluator.
+	evaluator doItReceiver: receiver.
+	evaluator behavior: receiver class.
 ]
 
 { #category : #updating }
 StDebuggerInspector >> updateWith: inspectedObject [
-	| oldPath oldItem |
-	oldPath := contextInspector table selection selectedPath.
-	oldItem := contextInspector table selectedItem hostObject.
-	self model inspectedObject: inspectedObject.
-	contextInspector model: inspectedObject.
-	contextInspector setAttributeTable.
-	contextInspector table
-		selectPath:
-			(inspectedObject == oldItem
-				ifTrue: [ oldPath ]
-				ifFalse: [ #(1) ])
+	| oldContext newContext |
+	oldContext := self model inspectedObject ifNotNil: [ :dbgCtx | 
+		              dbgCtx context ].
+	newContext := inspectedObject ifNotNil: [ :dbgCtx | dbgCtx context ].
+	(oldContext notNil and: [ newContext notNil ]) ifTrue: [ 
+		(oldContext receiver == newContext receiver and: [ 
+			 oldContext selector == newContext selector ]) ifTrue: [ 
+			self forceRawInspectionUpdate.
+			^ self ] ].
+	self saveRawInspectionSelectionForContext: oldContext.
+	self model: (StDebuggerInspectorModel on: inspectedObject).
+	self updateEvaluationPaneReceiver.
+	self restoreRawInspectionSelectionForContext: newContext
 ]

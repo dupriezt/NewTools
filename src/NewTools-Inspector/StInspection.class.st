@@ -7,18 +7,30 @@ Class {
 	#category : #'NewTools-Inspector-View'
 }
 
+{ #category : #converting }
+StInspection >> asInspection [
+
+	^ self
+]
+
 { #category : #'model access' }
 StInspection >> model [
 	^ model
 ]
 
 { #category : #'model access' }
-StInspection >> model: anObject [
-	model := anObject
+StInspection >> model: anInspectionModel [
+
+	model := anInspectionModel
 ]
 
 { #category : #'model access' }
-StInspection >> setModelBeforeInitialization: anObject [ 
+StInspection >> setModelBeforeInitialization: anInspectionModel [ 
 
-	model := anObject
+	model := anInspectionModel
+]
+
+{ #category : #stepping }
+StInspection >> step [
+	"do nothing, it depends on my children"
 ]

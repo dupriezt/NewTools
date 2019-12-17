@@ -12,7 +12,7 @@ Object >> allInspectorNodes [
 Object >> breakpointInspection [
 	<inspectorPresentationOrder: 998 title: 'Breakpoints'>
 
-	^ StBreakpointInspection on: self
+	^ StObjectBreakpointInspection on: self
 ]
 
 { #category : #'*NewTools-Inspector-Extensions' }
@@ -21,20 +21,9 @@ Object >> inspectionPages [
 	By default, it simply looks for the #gtInspectorPresentationOrder: pragma.
 	The inspector can decice whether or not a presentation should be dispayed.
 	Subclasses might want to override it for more special behavior."
-	| pragmas |
-	
-	pragmas := Pragma
-		allNamed: StInspector extensionsPragma
-		from: self class
-		to: ProtoObject
-		sortedUsing: [ :x :y | (x argumentAt: 1) < (y argumentAt: 1) ].
 
-	^ (pragmas 
-		sorted: [ :a :b | (a argumentAt: 1) < (b argumentAt: 1) ])
-		collect: [ :eachPragma | 
-			SpNotebookPage 
-				title: (eachPragma argumentAt: 2)
-				provider: [ self perform: eachPragma methodSelector ] ]
+	^ (StInspectionCollector on: self) collectPages
+
 ]
 
 { #category : #'*NewTools-Inspector-Extensions' }
@@ -58,6 +47,15 @@ Object >> rawInspection [
 	<inspectorPresentationOrder: -1 title: 'Raw'>
 
 	^ StRawInspection on: self
+]
+
+{ #category : #'*NewTools-Inspector-Extensions' }
+Object >> stDisplayString [
+
+	self gtDisplayString linesDo: [ :each | 
+		^ each contractTo: 200 ].
+
+	^ ''
 ]
 
 { #category : #'*NewTools-Inspector-Extensions' }

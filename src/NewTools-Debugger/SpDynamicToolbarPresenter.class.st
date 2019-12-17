@@ -20,26 +20,41 @@ SpDynamicToolbarPresenter class >> defaultSpec [
 
 { #category : #'actions lookup' }
 SpDynamicToolbarPresenter >> actions [ 	
-	^self owner toolbarActions
+	
+	^ self owner toolbarActions
 ]
 
 { #category : #initialization }
+<<<<<<< HEAD
 SpDynamicToolbarPresenter >> initializeWidgets [
 	debugCommands := self actions asToolbarPresenter
+=======
+SpDynamicToolbarPresenter >> initializePresenters [
+
+	self refreshWidgets
+>>>>>>> upstream/master
 ]
 
 { #category : #initialization }
 SpDynamicToolbarPresenter >> refreshWidgets [
+<<<<<<< HEAD
 	debugCommands := self actions asToolbarPresenter
+=======
+
+	debugCommands := self actions asToolbarPresenter.
+	debugCommands owner: self
+>>>>>>> upstream/master
 ]
 
 { #category : #'actions lookup' }
-SpDynamicToolbarPresenter >> session [ 	
-	^self owner session 
+SpDynamicToolbarPresenter >> session [
+
+	^ self owner session 
 ]
 
 { #category : #updating }
 SpDynamicToolbarPresenter >> update [
+
 	self refreshWidgets.
 	super update
 ]

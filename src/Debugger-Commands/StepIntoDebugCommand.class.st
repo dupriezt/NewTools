@@ -5,6 +5,7 @@ Class {
 }
 
 { #category : #default }
+<<<<<<< HEAD
 StepIntoDebugCommand class >> defaultCommandName [
 	<toolbarDebugCommand: 1>
 	
@@ -12,6 +13,8 @@ StepIntoDebugCommand class >> defaultCommandName [
 ]
 
 { #category : #default }
+=======
+>>>>>>> upstream/master
 StepIntoDebugCommand class >> defaultDescription [
 	^ 'Step in the highlighted message, i.e. follow the sent message, taking debugger control in the method invoked.'
 ]
@@ -23,6 +26,10 @@ StepIntoDebugCommand class >> defaultIconName [
 
 { #category : #default }
 StepIntoDebugCommand class >> defaultName [
+<<<<<<< HEAD
+=======
+	<toolbarDebugCommand: 20>
+>>>>>>> upstream/master
 	
 	^ 'Into'
 ]

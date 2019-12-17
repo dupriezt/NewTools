@@ -13,12 +13,19 @@ Class {
 		'commentText',
 		'sourcePage',
 		'variablesPanel',
+		'statusBar',
 		'selectedPackage',
 		'selectedClass',
 		'selectedMethod'
 	],
 	#category : #'NewTools-SystemBrowser-View'
 }
+
+{ #category : #private }
+StSystemBrowser class >> defaultEnvironment [
+	
+	^ ClyNavigationEnvironment currentImage
+]
 
 { #category : #specs }
 StSystemBrowser class >> defaultSpec [
@@ -39,19 +46,37 @@ StSystemBrowser class >> defaultSpec [
 StSystemBrowser class >> open [
 	<script>
 
-	^ self openOn: ClyNavigationEnvironment currentImage
+	^ self openOn: self defaultEnvironment
 ]
 
 { #category : #opening }
 StSystemBrowser class >> openOn: anEnvironment [
 
-	^ (self on: anEnvironment) openWithSpec
+	^ (self on: (StSBEnvironmentModel newEnvironment: anEnvironment)) openWithSpec
+]
+
+{ #category : #opening }
+StSystemBrowser class >> openOnClass: aClass [
+	| browser |
+
+	browser := self on: (StSBEnvironmentModel newEnvironment: self defaultEnvironment).
+	browser gotoClass: aClass.
+	^ browser openWithSpec
+]
+
+{ #category : #opening }
+StSystemBrowser class >> openOnPackage: aPackage [
+	| browser |
+
+	browser := self on: (StSBEnvironmentModel newEnvironment: self defaultEnvironment).
+	browser gotoPackage: aPackage.
+	^ browser openWithSpec
 ]
 
 { #category : #accessing }
 StSystemBrowser class >> preferredExtent [
 
-	^ 900@650
+	^ 880@650
 ]
 
 { #category : #'private selecting' }
@@ -73,21 +98,22 @@ StSystemBrowser >> basicSelectPackage: aPackageModel [
 ]
 
 { #category : #initialization }
-StSystemBrowser >> initializeWidgets [
-	
-	packagesPanel := self instantiate: StSBPackagesPanel on: self model.
-	classesPanel := self instantiate: StSBClassesPanel on: self model.
-	
-	instanceSidePanel := self instantiate: StSBProtocolInspectionPanel on: self model.
-	classSidePanel := self instantiate: StSBProtocolInspectionPanel on: self model.
-	variablesPanel := self instantiate: StSBVariableInspectionPanel on: self model.
-	inspectionPanel := self newNotebook 
-		addPage: (self newPage: 'Instance' provider: instanceSidePanel);
-		addPage: (self newPage: 'Class' provider: classSidePanel); 
-		addPage: (self newPage: 'Variables' provider: (SpLabelPresenter new label: 'TODO'));
-		yourself.
-		
-	codePanel := self newNotebook.
+StSystemBrowser >> buildStatusBar [
+
+	^ SpStatusBarPresenter new
+]
+
+{ #category : #initialization }
+StSystemBrowser >> buildToolBar [
+
+	^ CmCommandGroup forSpec
+		register: (StInspectorBrowseCommand forSpecContext: self);
+		register: (StInspectorHelpCommand forSpecContext: self);
+		asToolbarPresenterWith: [ :presenter | presenter beIcons ]
+]
+
+{ #category : #initialization }
+StSystemBrowser >> connectPresenters [
 
 	packagesPanel transmitTo: classesPanel transform: #classes.
 	packagesPanel transmitDo: [ :selection | self selectPackage: selection ].
@@ -102,12 +128,54 @@ StSystemBrowser >> initializeWidgets [
 	variablesPanel transmitDo: [ :selection | self selectMethod: selection ].
 ]
 
+{ #category : #accessing }
+StSystemBrowser >> gotoClass: aClass [
+
+	self gotoPackage: aClass package.
+	classesPanel gotoClass: aClass
+]
+
+{ #category : #accessing }
+StSystemBrowser >> gotoPackage: aPackage [
+
+	packagesPanel gotoPackage: aPackage 
+]
+
+{ #category : #initialization }
+StSystemBrowser >> initialTitle [
+		
+	self selectedClass ifNotNil: [ :aClass | ^ self titleFor: aClass ].
+	self selectedPackage ifNotNil: [ :aPackage | ^ self titleFor: aPackage ].
+	
+	^ 'System Browser'	
+]
+
+{ #category : #initialization }
+StSystemBrowser >> initializePresenters [
+	
+	packagesPanel := self instantiate: StSBPackagesPanel on: self model.
+	classesPanel := self instantiate: StSBClassesPanel on: self model.
+	
+	instanceSidePanel := self instantiate: StSBProtocolInspectionPanel on: self model.
+	classSidePanel := self instantiate: StSBProtocolInspectionPanel on: self model.
+	variablesPanel := self instantiate: StSBVariableInspectionPanel on: self model.
+	inspectionPanel := self newNotebook 
+		addPage: (self newPage: 'Instance' provider: instanceSidePanel);
+		addPage: (self newPage: 'Class' provider: classSidePanel); 
+		addPage: (self newPage: 'Variables' provider: (SpLabelPresenter new label: 'TODO'));
+		yourself.
+		
+	codePanel := self newNotebook
+]
+
 { #category : #initialization }
 StSystemBrowser >> initializeWindow: aWindowPresenter [
 
 	aWindowPresenter
-		title: self title;
-		initialExtent: self preferredExtent
+		title: self initialTitle;
+		initialExtent: self preferredExtent;
+		toolBar: self buildToolBar;
+		statusBar: (statusBar := self buildStatusBar)
 ]
 
 { #category : #'accessing model' }
@@ -164,7 +232,7 @@ StSystemBrowser >> newPage: aString provider: aBlock [
 StSystemBrowser >> selectClass: aClassModel [
 
 	self basicSelectClass: aClassModel.
-	self window title: 'Class: ', aClassModel name.
+	self withWindowDo: [ :w | w title: (self titleFor: aClassModel) ].
 	codePanel 
 		removeAll;
 		addPage: (self 
@@ -183,7 +251,7 @@ StSystemBrowser >> selectClass: aClassModel [
 StSystemBrowser >> selectMethod: aMethodModel [
 
 	self basicSelectMethod: aMethodModel.
-	self window title: aMethodModel name.
+	self withWindowDo: [ :w | w title: (self titleFor: aMethodModel) ].
 	codePanel 
 		removeAll;
 		addPage: (self 
@@ -202,7 +270,7 @@ StSystemBrowser >> selectMethod: aMethodModel [
 StSystemBrowser >> selectPackage: aPackage [
 
 	self basicSelectPackage: aPackage.
-	self window title: 'Package: ', aPackage name.
+	self withWindowDo: [ :w | w title: (self titleFor: aPackage) ].
 	codePanel 
 		removeAll;
 		addPage: (self 
@@ -232,7 +300,13 @@ StSystemBrowser >> selectedPackage [
 ]
 
 { #category : #'accessing model' }
-StSystemBrowser >> setModelBeforeInitialization: aNavigationEnvironment [
+StSystemBrowser >> setModelBeforeInitialization: anEnvironment [
 
-	model := StSBEnvironmentModel newEnvironment: aNavigationEnvironment	
+	model := anEnvironment
+]
+
+{ #category : #initialization }
+StSystemBrowser >> titleFor: aModel [
+
+	^ aModel windowTitle
 ]

@@ -1,3 +1,7 @@
+"
+I am a variable node for representing a temporary variable stored in a Context object that has a name attached. 
+This includes  local variables and method parameters.
+"
 Class {
 	#name : #StInspectorContextNamedTempNode,
 	#superclass : #StInspectorNode,
@@ -32,11 +36,12 @@ StInspectorContextNamedTempNode >> key [
 
 { #category : #accessing }
 StInspectorContextNamedTempNode >> label [
-	^ '[' , self key , ']'
+	^ self key
 ]
 
 { #category : #accessing }
 StInspectorContextNamedTempNode >> rawValue [
+
 	^ self hostObject debuggerMap namedTempAt: tempIndex in: self hostObject
 ]
 

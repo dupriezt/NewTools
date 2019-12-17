@@ -5,6 +5,7 @@ Class {
 }
 
 { #category : #accessing }
+<<<<<<< HEAD
 StepOverDebugCommand class >> defaultCommandName [
 	<toolbarDebugCommand: 2>
 
@@ -12,6 +13,8 @@ StepOverDebugCommand class >> defaultCommandName [
 ]
 
 { #category : #accessing }
+=======
+>>>>>>> upstream/master
 StepOverDebugCommand class >> defaultDescription [
 	^'Step over the highlighted message, i.e. do not follow the sent message, taking debugger control after the method invoked returns.'
 ]
@@ -23,6 +26,10 @@ StepOverDebugCommand class >> defaultIconName [
 
 { #category : #accessing }
 StepOverDebugCommand class >> defaultName [
+<<<<<<< HEAD
+=======
+	<toolbarDebugCommand: 40>
+>>>>>>> upstream/master
 
 	^ 'Over'
 ]

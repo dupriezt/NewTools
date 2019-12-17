@@ -23,11 +23,8 @@ DebugCommand class >> addAnonymousCommand: aCommand [
 
 { #category : #'instance creation' }
 DebugCommand class >> codeContextMenuCommandsForDebugger: debugger [
-	^ self
-		instantiateCommands: (self debugCommandClassesForPragma: #CodeContextMenuDebugCommand)
-		forDebugger: debugger
-]
 
+<<<<<<< HEAD
 { #category : #accessing }
 DebugCommand class >> debugCommandClassesForPragma: aSymbol [
 	| allClasses commandsClasses |
@@ -45,6 +42,11 @@ DebugCommand class >> debugCommandClassesForPragma: aSymbol [
 		ifTrue: [ commandsClasses sorted: [ :a :b | (a argumentAt: 1) < (b argumentAt: 1) ] ]
 		ifFalse: [ commandsClasses ])
 		collect: [ :pragma | pragma methodClass soleInstance ]
+=======
+	^ self
+		instantiateCommandsFromPragma: #CodeContextMenuDebugCommand
+		for: debugger
+>>>>>>> upstream/master
 ]
 
 { #category : #initialization }
@@ -67,6 +69,7 @@ DebugCommand class >> forSpecContext: anObject [
 ]
 
 { #category : #'instance creation' }
+<<<<<<< HEAD
 DebugCommand class >> instantiateCommands: commandClasses forDebugger: debugger [
 	^ commandClasses
 		collect: [ :commandClass | commandClass forSpecContext: debugger ]
@@ -96,10 +99,13 @@ DebugCommand class >> newAnonymousActionLabeled: title icon: icon executeScript:
 ]
 
 { #category : #'instance creation' }
+=======
+>>>>>>> upstream/master
 DebugCommand class >> preDebugCommandsForDebugger: debugger [
+	
 	^ self
-		instantiateCommands: (self debugCommandClassesForPragma: #PreDebugCommand)
-		forDebugger: debugger
+		instantiateCommandsFromPragma: #PreDebugCommand
+		for: debugger
 ]
 
 { #category : #'instance creation' }
@@ -109,21 +115,29 @@ DebugCommand class >> removeAllAnonymousCommands [
 
 { #category : #'instance creation' }
 DebugCommand class >> stackContextMenuCommandsForDebugger: debugger [
+	
 	^ self
-		instantiateCommands: (self debugCommandClassesForPragma: #StackContextMenuDebugCommand)
-		forDebugger: debugger
+		instantiateCommandsFromPragma: #StackContextMenuDebugCommand
+		for: debugger
 ]
 
 { #category : #'instance creation' }
 DebugCommand class >> toolbarCommandsForDebugger: debugger [
 
 	^ self
-		instantiateCommands: (self debugCommandClassesForPragma: #toolbarDebugCommand:)
-		forDebugger: debugger
+		instantiateCommandsFromPragma: #toolbarDebugCommand:
+		for: debugger
+]
+
+{ #category : #testing }
+DebugCommand >> appliesTo: aDebugger [
+
+	^ self appliesToDebugger: aDebugger
 ]
 
 { #category : #testing }
 DebugCommand >> appliesToDebugger: aDebugger [
+
 	^ true
 ]
 
@@ -135,7 +149,8 @@ DebugCommand >> context: aContext [
 
 { #category : #accessing }
 DebugCommand >> currentContext [
-	^self debugger context
+
+	^ self debugger currentContext
 ]
 
 { #category : #accessing }
@@ -145,8 +160,22 @@ DebugCommand >> debugger [
 
 { #category : #initialization }
 DebugCommand >> initialize [
-	super initialize.
 
+	super initialize.
+<<<<<<< HEAD
+
+=======
+	self description: (String streamContents: [ :stream | 
+		stream 
+			<< self class defaultName
+			<< ': '
+			<< self class defaultDescription ])
+]
+
+{ #category : #hooks }
+DebugCommand >> interruptedContext [
+	^ self debugger interruptedContext
+>>>>>>> upstream/master
 ]
 
 { #category : #accessing }

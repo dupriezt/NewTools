@@ -6,22 +6,31 @@ All the debugging logic is in DebugSession and the corresponding debugging actio
 "
 Class {
 	#name : #SpecDebugger,
-	#superclass : #SpPresenterWithModel,
+	#superclass : #StPresenter,
 	#instVars : [
 		'sessionHolder',
-		'labelHolder',
 		'code',
 		'toolbar',
+<<<<<<< HEAD
 		'contextInspector',
 		'receiverInspector',
 		'stackTable',
 		'sindarinDebugger',
 		'subscription'
+=======
+		'stackTable',
+		'inspector',
+		'breakpointInspector',
+		'stackHeader',
+		'codeHeader'
+>>>>>>> upstream/master
 	],
 	#classVars : [
+		'DefaultSpec',
 		'ErrorRecursion',
 		'FilterCommonMessageSends',
-		'LogDebuggerStackToFile'
+		'LogDebuggerStackToFile',
+		'UsingSpecSelector'
 	],
 	#category : #'NewTools-Debugger-View'
 }
@@ -41,24 +50,79 @@ SpecDebugger class >> closeAllDebuggers [
 ]
 
 { #category : #specs }
-SpecDebugger class >> defaultSpec [
-	<spec: #default>
+SpecDebugger class >> columnInspectorsSpec [
+	"<spec: #default>"
 
-	^ SpPanedLayout newVertical
-		position: 70 percent;
-		add: (SpPanedLayout newVertical
-			position: 40 percent;
-			add: #stackTable;
-			add: (SpBoxLayout newVertical 
-				add: #toolbar expand: false fill: false padding: 0;
-				add: #code;
-				yourself);
-			yourself);
+	^ SpBoxLayout newVertical
+		"position: 70 percent;"
 		add: (SpPanedLayout newHorizontal
-			add: #receiverInspector;
-			add: #contextInspector;
+			position: 65 percent;
+			add: (SpPanedLayout newVertical
+				position: 40 percent;
+				add: (SpBoxLayout newVertical 
+					add: 'Stack' expand: false fill: false padding: 5;
+					add: #stackTable;
+					yourself);
+				add: (SpBoxLayout newVertical 
+					add: 'Source' expand: false fill: false padding: 5;
+					add: #toolbar expand: false fill: false padding: 0;
+					add: #code;
+					yourself);
+				yourself);
+			"add: (SpPanedLayout newVertical 
+				add: #contextInspector withConstraints: [ :c | c spec: #variablesListOnTop ];
+				add: #inspector withConstraints: [ :c | c spec: #inspectorAlone ];
+				yourself);"
 			yourself);
 		yourself
+]
+
+{ #category : #specs }
+SpecDebugger class >> contextRightColumnSpec [
+	^ SpPanedLayout newVertical
+		  position: 70 percent;
+		  add: (SpPanedLayout newHorizontal
+				   position: 65 percent;
+				   add: (SpPanedLayout newVertical
+						    position: 40 percent;
+						    add: (SpBoxLayout newVertical
+								     add: #stackHeader
+								     expand: false
+								     fill: false
+								     padding: 5;
+								     add: #stackTable;
+								     yourself);
+						    add: (SpBoxLayout newVertical
+								     add: (SpBoxLayout newVertical
+								 				add: #toolbar;
+										      add: #codeHeader
+										      expand: true
+										      fill: true
+										      padding: 0;
+										      yourself)
+								     withConstraints: [ :constraints | 
+									     constraints
+										     expand: false;
+										     height: self toolbarHeight * 2 ];
+								     add: #code;
+								     yourself);
+						    yourself);
+				   add: #breakpointInspector;
+				   yourself);
+		  add: #inspector;
+		  yourself
+]
+
+{ #category : #specs }
+SpecDebugger class >> defaultSpec [
+
+	^ self perform: self usingSpecSelector
+]
+
+{ #category : #opening }
+SpecDebugger class >> defaultTitle [
+	"GTDebugger needs this to create its action to switch to other debuggers (in this case to the Spec Debugger). I don't know if switching to this debugger actually works, but if the action cannot be created, the GTDebugger crashes when being opened. This method can be removed if the GTDebugger is removed"
+	^ 'SpecDebugger'
 ]
 
 { #category : #'menu code' }
@@ -86,6 +150,13 @@ SpecDebugger class >> handlesContext: aContext [
 	^ true
 ]
 
+{ #category : #'debugger declaration' }
+SpecDebugger class >> iAmADebugger [
+	"Leave blank for intermediate classes. Add the <iAmADebugger> pragma for concrete debugger classes. This pragma is used by the system to find all available debuggers"
+	"For compatibility with DebuggerSelector https://github.com/dupriezt/DebuggerSelector"
+	<iAmADebugger>
+]
+
 { #category : #'class initialization' }
 SpecDebugger class >> initialize [ 
 	
@@ -95,7 +166,7 @@ SpecDebugger class >> initialize [
 	(Smalltalk tools respondsTo: #registerDebugger:withRank:) ifFalse: [ ^ self ].
 
 	"Add ourselves to registry. See [Smalltalk tools]" 
-	Smalltalk tools registerDebugger: self withRank: 80.
+	Smalltalk tools registerDebugger: self withRank: self rank.
 	
 ]
 
@@ -109,6 +180,7 @@ SpecDebugger class >> logDebuggerStackToFile: aBoolean [
 	 LogDebuggerStackToFile := aBoolean
 ]
 
+<<<<<<< HEAD
 { #category : #'instance creation' }
 SpecDebugger class >> on: aDebugSession [
 	| sindarinDebugSession returnValue |
@@ -123,6 +195,8 @@ SpecDebugger class >> on: aDebugSession [
 	
 ]
 
+=======
+>>>>>>> upstream/master
 { #category : #opening }
 SpecDebugger class >> openOn: aDebugSession withFullView: aBool [
 	
@@ -133,8 +207,22 @@ SpecDebugger class >> openOn: aDebugSession withFullView: aBool [
 SpecDebugger class >> openOn: aDebugSession withFullView: aBool andNotification: aString [
 	| debugger |
 	debugger := self on: aDebugSession.
+	[aDebugSession keepAlive: debugger] on: MessageNotUnderstood do: [ ]. "For compatibility with DebuggerSelector https://github.com/dupriezt/DebuggerSelector
+	The on:do: can be removed once DebuggerSelector is integrated into the image, so that DebugSession has the #keepAlive: method"
 	debugger openWithFullView.
 	^ debugger
+]
+
+{ #category : #'class initialization' }
+SpecDebugger class >> rank [
+	^ 80
+]
+
+{ #category : #'class initialization' }
+SpecDebugger class >> rankDebugSession: aDebugSession [
+	"Returns an integer representing how much this debugger is suitable to debug @aDebugSession. The higher the integer returned, the more suitable this debugger is. Signal the DebugSessionCannotBeOpenedByThisDebugger exception if this debugger absolutely cannot debug @aDebugSession (for example if this debugger can only handle debug sessions from test executions, and @aDebugSession does not come from a test execution)"
+	"For compatibility with DebuggerSelector https://github.com/dupriezt/DebuggerSelector"
+	^ self rank.
 ]
 
 { #category : #'tools registry' }
@@ -157,6 +245,24 @@ SpecDebugger class >> sessionClass [
 	^ DebugSession
 ]
 
+{ #category : #specs }
+SpecDebugger class >> singleInspectorSpec [
+	"<spec: #default>"
+
+	^ SpPanedLayout newVertical
+		position: 55 percent;
+		add: (SpPanedLayout newVertical
+			position: 40 percent;
+			add: #stackTable;
+			add: (SpBoxLayout newVertical 
+				add: #toolbar expand: false fill: false padding: 0;
+				add: #code;
+				yourself);
+			yourself);
+		add: #inspector;
+		yourself
+]
+
 { #category : #accessing }
 SpecDebugger class >> spanNewSessionFrom: anotherSession [
 	self flag: 'Where is that used? 2019-06-28'.
@@ -174,12 +280,56 @@ SpecDebugger class >> taskbarIconName [
 	^#smallDebugIcon
 ]
 
+{ #category : #specs }
+SpecDebugger class >> traditionalSpec [
+	"<spec: #default>"
+
+	^ SpPanedLayout newVertical
+		position: 70 percent;
+		add: (SpPanedLayout newVertical
+			position: 40 percent;
+			add: #stackTable;
+			add: (SpBoxLayout newVertical 
+				add: #toolbar expand: false fill: false padding: 0;
+				add: #code;
+				yourself);
+			yourself);
+		add: (SpPanedLayout newHorizontal
+			add: #inspector;
+			yourself);
+		yourself
+]
+
+{ #category : #specs }
+SpecDebugger class >> useSpecSelector: aSelector [
+
+	UsingSpecSelector := aSelector
+]
+
+{ #category : #specs }
+SpecDebugger class >> usingSpecSelector [
+
+	^ UsingSpecSelector ifNil: [ 
+		UsingSpecSelector := #contextRightColumnSpec ]
+]
+
 { #category : #actions }
 SpecDebugger >> clear [
+	breakpointInspector unsubscribeFromCacheChanges.
 	self removeActionsForSession: self session.
-
+	
 	"No more code should follow after this, as the session might terminate this process."
-	self session terminate
+	[self session stopKeepingAlive: self] on: MessageNotUnderstood do: [ self session terminate ] "For compatibility with DebuggerSelector https://github.com/dupriezt/DebuggerSelector
+	If DebugSelector is in the image (i.e. the debug session understands the #stopKeepingAlive: message), it is responsible for terminating debug sessions, so we just let it do it. If DebugSelector is not in the image (handler block), then we terminate the debug session ourselves"
+]
+
+{ #category : #'updating widgets' }
+SpecDebugger >> clearCode [
+	
+	self code
+		text: '';
+		behavior: nil;
+		setSelection: (1 to: 0)
 ]
 
 { #category : #actions }
@@ -222,52 +372,105 @@ SpecDebugger >> currentContext [
 		ifFalse: [ self selectedContext ]
 ]
 
+{ #category : #stack }
+SpecDebugger >> expandStackIfLastItemIsSelected [
+	| selection |
+	selection := stackTable selection.
+	selection selectedItem == stackTable items last ifFalse: [ ^ self ].
+	stackTable items: (self filterStack:
+			 (self session stackOfSize: 2 * stackTable items size)).
+	stackTable selectIndex: selection selectedIndex
+]
+
+{ #category : #stack }
+SpecDebugger >> filterStack: aStack [
+	^ aStack reject: [ :aContext | 
+		  aContext method hasPragmaNamed: #debuggerCompleteToSender ]
+]
+
+{ #category : #stack }
+SpecDebugger >> findFirstRelevantStackIndexIn: aStack [
+	| counter |
+	counter := 1.
+	aStack do: [ :context | 
+		context method methodClass == TestAsserter ifFalse: [ ^ counter ].
+		counter := counter + 1 ].
+	^ 1
+]
+
 { #category : #api }
 SpecDebugger >> initialExtent [ 
 	"This code was taken from the old debugger to get the same behavior. Fell free to refactor"
 
 	RealEstateAgent standardWindowExtent y < 400 "a tiny screen" 
-		ifTrue: [^ 700@500].
+		ifTrue: [ ^ 700@500 ].
 	
 	^ [ | w h |
 		w := Display width.
 		h := Display height.
 		(w - (w // 3)) @ (h - (h // 5)) ]
 		on: Error
-		do: [ 850@600 ]
+		do: [ 850@650 ]
 ]
 
 { #category : #initialization }
 SpecDebugger >> initialize [
 	super initialize.
-	self whenWindowChanged: [ :w | w whenClosedDo: [ self clear ] ].
-	self sessionHolder
-		whenChangedDo: [ :newSession :oldSession | 
-			self removeActionsForSession: oldSession.
-			self registerActionsForSession: newSession.
-			self updateToolbar.
-			self updateStackFromSession: newSession ].
-	self labelHolder whenChangedDo: [ self updateTitle ].
+	self sessionHolder whenChangedDo: [ :newSession :oldSession | 
+		self removeActionsForSession: oldSession.
+		self registerActionsForSession: newSession.
+		self updateToolbar.
+		self updateStackFromSession: newSession.
+		self updateTitle ].
 	self sessionHolder valueChanged
 ]
 
 { #category : #initialization }
-SpecDebugger >> initializeInspectors [
-
-	receiverInspector := (StDebuggerInspector
-		newApplication: self application
-		model: (StInspectorModel on: nil))
-		label: 'Receiver'.
-
-	contextInspector := (StDebuggerInspector
-		newApplication: self application
-		model: (StInspectorModel on: [ ] asContext))
-		label: 'Context'
+SpecDebugger >> initializeBreakpointInspector [
+	breakpointInspector := self
+		instantiate: StDebuggerBreakpointInspection
+		on: (StInspectorModel on: nil).
+	"inspector label: 'Receiver'"
 ]
 
-{ #category : #stack }
+{ #category : #initialization }
+SpecDebugger >> initializeCode [
+	self flag: 'Add metalink information in the gutter!'.
+	code := self newCode.
+	code acceptBlock: [ :text :notifyer | 
+		self
+			recompileMethodTo: text string
+			inContext: self stackTable selection selectedItem
+			notifying: notifyer ].
+		
+	codeHeader := self instantiate: StHeaderBar.
+	codeHeader applyStyleToLabel: 'label.headerError'.
+	codeHeader label: self session name.
+]
+
+{ #category : #initialization }
+SpecDebugger >> initializeInspector [
+	inspector := self
+		instantiate: StDebuggerInspector
+		on: (StDebuggerInspectorModel on: nil).
+	inspector label: 'Receiver'
+]
+
+{ #category : #initialization }
+SpecDebugger >> initializePresenters [
+
+	self initializeStack.
+	self initializeToolbar.
+	self initializeCode.
+	self initializeInspector.
+	self initializeBreakpointInspector
+]
+
+{ #category : #initialization }
 SpecDebugger >> initializeStack [
+
 	stackTable := self newTable.
+<<<<<<< HEAD
 	stackTable
 		addColumn:
 			(SpStringTableColumn
@@ -288,21 +491,49 @@ SpecDebugger >> initializeStack [
 			self updateToolbar ].
 	stackTable
 		contextMenu: [ self stackMenuActions beRoot asMenuPresenter ]
+=======
+	stackTable 
+		addColumn: (SpStringTableColumn
+			title: 'Class'
+			evaluated: [ :item | item receiver class ]);
+		addColumn: (SpStringTableColumn
+			title: 'Method'
+			evaluated: [ :item | item method selector ]);
+		addColumn: (SpStringTableColumn
+			title: 'Context'
+			evaluated: [ :item | item sender stDisplayString ]).
+	
+	stackTable contextMenu: [ 
+		self stackMenuActions beRoot asMenuPresenter ].
+	
+	stackTable transmitDo: [ :context | 
+		self updateInspectorFromContext: context.
+		self updateCodeFromContext: context.
+		self updateToolbar.
+		self updateTitle.
+		self expandStackIfLastItemIsSelected  ].
+	
+	stackHeader := self instantiate: StHeaderBar.
+	stackHeader label: 'Stack'.
+>>>>>>> upstream/master
 ]
 
 { #category : #initialization }
-SpecDebugger >> initializeWidgets [
-	self initializeStack.
-	toolbar := self newDynamicToolbar.
-	code := self newCode.
-	self initializeInspectors.
-	self code
-		acceptBlock: [ :text :notifyer | 
-			self
-				recompileMethodTo: text string
-				inContext: self stackTable selection selectedItem
-				notifying: notifyer ]
-	"self code selection whenChangedSend: #selectionChanged to: self"
+SpecDebugger >> initializeToolbar [
+
+	toolbar := self newToolBar.
+	self flag: #TODO. "This needs to come from the application configuration"
+	toolbar beIcons.
+	self updateToolbar
+]
+
+{ #category : #initialization }
+SpecDebugger >> initializeWindow: aWindowPresenter [
+
+	aWindowPresenter 
+		title: self title;
+		initialExtent: self initialExtent;
+		 whenClosedDo: [ self clear ]
 ]
 
 { #category : #'accessing context' }
@@ -317,23 +548,9 @@ SpecDebugger >> interruptedProcess [
 	^ self session interruptedProcess
 ]
 
-{ #category : #accessing }
-SpecDebugger >> label [
-	^ self labelHolder value
-]
-
-{ #category : #accessing }
-SpecDebugger >> label: aString [
-	self labelHolder value: aString
-]
-
-{ #category : #accessing }
-SpecDebugger >> labelHolder [
-	^ labelHolder ifNil: [ labelHolder := nil asValueHolder ]
-]
-
 { #category : #api }
 SpecDebugger >> okToChange [
+
 	self code canDiscardEdits
 		ifTrue: [ ^ true ].
 	self code changed: #wantToChange.
@@ -404,13 +621,14 @@ self flag: 'Kill it'.
 			removeActionsForEvent:#contextChanged ]. 
 ]
 
-{ #category : #'accessing context' }
+{ #category : #stack }
 SpecDebugger >> selectTopContext [
 	stackTable selectIndex: 1
 ]
 
 { #category : #'accessing context' }
 SpecDebugger >> selectedContext [
+
 	^ self stackTable selection selectedItem
 ]
 
@@ -421,8 +639,7 @@ SpecDebugger >> session [
 
 { #category : #accessing }
 SpecDebugger >> session: aSession [
-	self sessionHolder value: aSession.
-	self label: aSession asString
+	self sessionHolder value: aSession
 ]
 
 { #category : #accessing }
@@ -430,6 +647,7 @@ SpecDebugger >> sessionHolder [
 	^ sessionHolder ifNil: [ sessionHolder := nil asValueHolder ]
 ]
 
+<<<<<<< HEAD
 { #category : #accessing }
 SpecDebugger >> sindarinDebugger [
 	^ sindarinDebugger
@@ -438,6 +656,18 @@ SpecDebugger >> sindarinDebugger [
 { #category : #accessing }
 SpecDebugger >> sindarinDebugger: aSindarinDebugger [
 	sindarinDebugger := aSindarinDebugger
+=======
+{ #category : #initialization }
+SpecDebugger >> setModelBeforeInitialization: aSession [
+
+	self session: aSession
+]
+
+{ #category : #stack }
+SpecDebugger >> showFullStack [
+	stackTable items: (self filterStack: self session stack)
+
+>>>>>>> upstream/master
 ]
 
 { #category : #actions }
@@ -449,6 +679,7 @@ SpecDebugger >> stackMenuActions [
 	^ group
 ]
 
+<<<<<<< HEAD
 { #category : #initialization }
 SpecDebugger >> subscribeToSessionHolder [
 	self sessionHolder
@@ -457,14 +688,38 @@ SpecDebugger >> subscribeToSessionHolder [
 			self registerActionsForSession: newSession.
 			self updateToolbar.
 			self updateStackFromSession: newSession ].
+=======
+{ #category : #'accessing widgets' }
+SpecDebugger >> stackTable [
+	^stackTable
+]
+
+{ #category : #'accessing context' }
+SpecDebugger >> statusLabelStyleForCurrentContext [
+	(self context tempNames includes: #exception) ifTrue: [ 
+		(self context tempNamed: #exception) ifNotNil: [ :ex | 
+			^ 'label.headerError' ] ].
+	self context currentNode isHaltNode ifTrue: [ ^ 'label.headerError' ].
+	^ 'label.header'
+]
+
+{ #category : #'accessing context' }
+SpecDebugger >> statusLabelTextForCurrentContext [
+	(self context tempNames includes: #exception) ifTrue: [ 
+		(self context tempNamed: #exception) ifNotNil: [ :ex | 
+			^ ex description ] ].
+	^ self context currentNode isHaltNode
+		  ifTrue: [ 'Halt' ]
+		  ifFalse: [ 
+		  self context receiver class name , '>>' , self context selector ]
+>>>>>>> upstream/master
 ]
 
 { #category : #api }
 SpecDebugger >> title [
-
-	^ ((self session isContextPostMortem: self interruptedContext)  
-			ifTrue: [ 'PostMortem: ' ]
-			ifFalse: [ '' ]), (self label ifNil: [ '' ])
+	^ ((self session isContextPostMortem: self interruptedContext)
+		ifTrue: [ 'PostMortem: ' ]
+		ifFalse: [ '' ]) , self currentContext asString
 ]
 
 { #category : #'accessing widgets' }
@@ -476,57 +731,59 @@ SpecDebugger >> toolbar [
 { #category : #actions }
 SpecDebugger >> toolbarActions [
 	| group |
-	group := (CmCommandGroup named: 'Toolbar')
-		decorateWith: SpCommandGroup.
+	self flag: 'Add metalink inspect button'.
+	group := (CmCommandGroup named: 'Toolbar') asSpecGroup.
 	(DebugCommand toolbarCommandsForDebugger: self)
 		do: [ :cmd | group register: cmd ].
+	
 	^ group
 ]
 
 { #category : #'updating widgets' }
 SpecDebugger >> updateCodeFromContext [
-	self updateCodeFromContext: self currentContext.
+
+	self updateCodeFromContext: self currentContext
 ]
 
 { #category : #'updating widgets' }
 SpecDebugger >> updateCodeFromContext: aContext [
-	aContext
-		ifNil: [ self code
-				withoutSyntaxHighlight;
-				text: '';
-				behavior: nil;
-				setSelection: (1 to: 0) ]
-		ifNotNil: [ | selectionInterval |
-			selectionInterval := self session
-				selectedCodeRangeForContext: aContext.
-			self code
-				withSyntaxHighlight;
-				text: aContext sourceCode;
-				doItReceiver: aContext home receiver;
-				doItContext: aContext;
-				behavior: aContext home receiver class;
-				setSelection: selectionInterval ]
+	| selectionInterval |
+	
+	aContext ifNil: [ ^ self clearCode ].
+
+	selectionInterval := self session selectedCodeRangeForContext: aContext.
+	self code
+		text: aContext sourceCode;
+		doItReceiver: aContext home receiver;
+		doItContext: aContext;
+		behavior: aContext home receiver class;
+		selection: selectionInterval
+]
+
+{ #category : #'updating widgets' }
+SpecDebugger >> updateCodeHeaderLabel [
+	
+	codeHeader removeStyleFromLabel: 'label.headerError'.	
+	codeHeader removeStyleFromLabel: 'label.header'.	
+	codeHeader label: self statusLabelTextForCurrentContext.
+	codeHeader applyStyleToLabel: self statusLabelStyleForCurrentContext.
+	codeHeader update
+	
 ]
 
 { #category : #'updating actions' }
 SpecDebugger >> updateContextChanged [
-	| selection |
-	selection := self stackTable selection selectedItem.
 	self updateStep
-	"	self stack selectItem: selection"
 ]
 
-{ #category : #updating }
-SpecDebugger >> updateInspectorsFromContext: aContext [
-	contextInspector updateWith: aContext.
-	receiverInspector updateWith: aContext home receiver
+{ #category : #'updating widgets' }
+SpecDebugger >> updateInspectorFromContext: aContext [
+	inspector updateWith: (StDebuggerContext context: aContext session: self session)
 ]
 
 { #category : #'updating actions' }
 SpecDebugger >> updateRestart [
-
-	self updateStep 
-	
+	self updateStep
 ]
 
 { #category : #'updating actions' }
@@ -537,19 +794,22 @@ SpecDebugger >> updateResume [
 
 { #category : #stack }
 SpecDebugger >> updateStackFromSession: aSession [
-	stackTable items: aSession shortStack.
-	stackTable selectIndex: 1
+	|stack|
+	stack := (self filterStack: aSession shortStack).
+	stackTable items: stack.
+	stackTable selectIndex: (self findFirstRelevantStackIndexIn: stack)
 ]
 
 { #category : #'updating actions' }
 SpecDebugger >> updateStep [
-	self updateStackFromSession: self session
+	self updateInspectorFromContext: self context.
+	self updateStackFromSession: self session.
+	self updateCodeHeaderLabel
 ]
 
 { #category : #'updating actions' }
 SpecDebugger >> updateStepInto [
-
-	self updateStep 
+	self updateStep
 ]
 
 { #category : #'updating actions' }
@@ -566,11 +826,15 @@ SpecDebugger >> updateStepThrough [
 ]
 
 { #category : #'updating widgets' }
-SpecDebugger >> updateToolbar [
-	self toolbar update
+SpecDebugger >> updateTitle [
+	self withWindowDo: [ :window | window title: self title ]
 ]
 
 { #category : #'updating widgets' }
-SpecDebugger >> updateToolbarFromSession: aSession [
-	"self toolbar session: aSession"
+SpecDebugger >> updateToolbar [
+
+	toolbar removeAllItems.
+	SpToolBarPresenterBuilder new 
+		toolbarPresenter: toolbar;
+		visit: self toolbarActions
 ]

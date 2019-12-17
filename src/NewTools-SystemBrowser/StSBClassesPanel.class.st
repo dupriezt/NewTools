@@ -29,11 +29,23 @@ StSBClassesPanel >> defineInputPorts [
 { #category : #initialization }
 StSBClassesPanel >> defineOutputPorts [
 
-	^ { SpListSelectionPort newDelegate: [ self classList ] }
+	^ { SpSelectionPort newDelegate: [ self classList ] }
+]
+
+{ #category : #accessing }
+StSBClassesPanel >> gotoClass: aClass [
+	| items classModel |
+
+	items := self classList items. 
+	classModel := items
+		detect: [ :each | each modelClass = aClass ]
+		ifNone: [ ^ self ].
+		
+	self classList selectItem: classModel
 ]
 
 { #category : #initialization }
-StSBClassesPanel >> initializeWidgets [
+StSBClassesPanel >> initializePresenters [
 	
 	classList := self newTable
 		hideColumnHeaders;

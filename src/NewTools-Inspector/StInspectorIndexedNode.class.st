@@ -1,3 +1,8 @@
+"
+I am a variable node for representing the indexed variables of an object. 
+I used the index of a variable as a key. 
+I extract the value from the host object every time #rawValue is called
+"
 Class {
 	#name : #StInspectorIndexedNode,
 	#superclass : #StInspectorNode,
@@ -14,9 +19,21 @@ StInspectorIndexedNode class >> hostObject: anObject index: index [
 		yourself
 ]
 
+{ #category : #comparing }
+StInspectorIndexedNode >> = anObject [
+
+	^ super = anObject and: [ index = anObject index ]
+]
+
 { #category : #accessing }
 StInspectorIndexedNode >> errorMessage [
 	^ 'error obtaining indexed attribute value'
+]
+
+{ #category : #comparing }
+StInspectorIndexedNode >> hash [
+
+	^ index hash
 ]
 
 { #category : #accessing }
@@ -36,6 +53,7 @@ StInspectorIndexedNode >> key [
 
 { #category : #accessing }
 StInspectorIndexedNode >> rawValue [
+
 	^ self hostObject basicAt: index
 ]
 

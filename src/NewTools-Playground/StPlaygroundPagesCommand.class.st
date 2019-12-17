@@ -1,6 +1,6 @@
 Class {
 	#name : #StPlaygroundPagesCommand,
-	#superclass : #CmCommand,
+	#superclass : #StPlaygroundCommand,
 	#category : #'NewTools-Playground-Command'
 }
 
@@ -20,10 +20,9 @@ StPlaygroundPagesCommand >> execute [
 ]
 
 { #category : #initialization }
-StPlaygroundPagesCommand >> initialize [ 
-	
+StPlaygroundPagesCommand >> initialize [
 	super initialize.
-	self 
-		basicName: 'Pages';
-		basicDescription: 'Load a saved page.'
+	self
+		name: 'Pages';
+		description: 'Load a saved page.'
 ]
